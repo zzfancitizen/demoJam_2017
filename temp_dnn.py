@@ -59,10 +59,10 @@ def main():
             np.reshape([11.0, 38.0, 11.0, 66.2, 100.0, 2.1, 26.9, 16.1, 32.0, 997.4, 19.93], (1, -1)),
             dtype=np.float32
         )},
-        y=np.array(
-            np.reshape([0, ], (1, -1)),
-            dtype=np.int8
-        ),
+        # y=np.array(
+        #     np.reshape([0, ], (1, -1)),
+        #     dtype=np.int8
+        # ),
         num_epochs=1,
         shuffle=False)
 
