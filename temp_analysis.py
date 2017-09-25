@@ -109,7 +109,7 @@ def main(_):
         save_summary_steps=500,
         save_checkpoints_steps=500,
         # Creates model dir (need to change this)
-        model_dir=(os.path.abspath('./model') + os.path.sep + "bucketized-04"),
+        model_dir=(os.path.abspath('./model') + os.path.sep + "temp-model"),
         session_config=config
     )
 
