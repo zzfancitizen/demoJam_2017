@@ -40,7 +40,7 @@ def main():
         shuffle=True)
 
     # Train model.
-    classifier.fit(input_fn=train_input_fn, steps=2000)
+    # classifier.fit(input_fn=train_input_fn, steps=2000)
     #
     # # Define the test inputs
     # test_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -53,6 +53,22 @@ def main():
     # accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
     #
     # print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+
+    eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={"x": np.array(
+            np.reshape([11.0, 38.0, 11.0, 66.2, 100.0, 2.1, 26.9, 16.1, 32.0, 997.4, 19.93], (1, -1)),
+            dtype=np.float32
+        )},
+        y=np.array(
+            np.reshape([0, ], (1, -1)),
+            dtype=np.int8
+        ),
+        num_epochs=1,
+        shuffle=False)
+
+    predict = classifier.predict(input_fn=eval_input_fn)
+
+    print(list(predict))
 
 
 if __name__ == "__main__":
