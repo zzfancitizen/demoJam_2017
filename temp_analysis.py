@@ -7,7 +7,7 @@ import tensorflow as tf
 import pandas as pds
 import os
 
-# tf.logging.set_verbosity(tf.logging.INFO)
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 PATH = os.path.abspath('./data')
 
