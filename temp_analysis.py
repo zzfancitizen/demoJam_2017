@@ -89,11 +89,12 @@ def main(_):
 
     eval_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={"x": np.array(
-            np.reshape([25.0, 77.0, 24.0, 75.2, 94.0, 11.1, 6.9, 16.1, 10.0, 1013.4, 29.93], (1, -1)),
+            # np.reshape([25.0, 77.0, 24.0, 75.2, 94.0, 11.1, 6.9, 16.1, 10.0, 1013.4, 29.93], (1, -1)),
+            np.reshape([23.3, 73.9, 21.7, 71.1, 91.0, 42.6, 26.5, 3.2, 2.0, 1005.0, 29.68], (1, -1)),
             dtype=np.float32
         )},
         y=np.array(
-            np.reshape([1, ], (1, -1)),
+            np.reshape([0, ], (1, -1)),
             dtype=np.int8
         ),
         num_epochs=1,
@@ -104,6 +105,5 @@ def main(_):
     # print(eval_results)
     print(list(predict))
 
-
-if __name__ == "__main__":
-    tf.app.run(main)
+    if __name__ == "__main__":
+        tf.app.run(main)
