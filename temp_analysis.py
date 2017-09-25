@@ -18,7 +18,7 @@ def my_input_fn():
     max_value = X.max(axis=0)
     min_value = X.min(axis=0)
 
-    # Feature scaling set input between [0, 1]
+    # Feature scaling set input between [-1, 1]
     for i in range(X.shape[1]):
         X[:, i] = (X[:, i] - min_value[i]) / (max_value[i] - min_value[i])
 
