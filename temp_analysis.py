@@ -82,27 +82,27 @@ def main(_):
         model_fn=mode_fn, model_dir='./model/temp-model-1'
     )
 
-    classifier.train(
-        input_fn=input_fn,
-        steps=2000
-    )
+    # classifier.train(
+    #     input_fn=input_fn,
+    #     steps=2000
+    # )
 
-    # eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-    #     x={"x": np.array(
-    #         np.reshape([25.0, 77.0, 24.0, 75.2, 94.0, 11.1, 6.9, 16.1, 10.0, 1013.4, 29.93], (1, -1)),
-    #         dtype=np.float32
-    #     )},
-    #     y=np.array(
-    #         np.reshape([1, ], (1, -1)),
-    #         dtype=np.int8
-    #     ),
-    #     num_epochs=1,
-    #     shuffle=False)
-    #
-    # # eval_results = classifier.evaluate(input_fn=eval_input_fn)
-    # predict = classifier.predict(input_fn=eval_input_fn)
-    # # print(eval_results)
-    # print(list(predict))
+    eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={"x": np.array(
+            np.reshape([25.0, 77.0, 24.0, 75.2, 94.0, 11.1, 6.9, 16.1, 10.0, 1013.4, 29.93], (1, -1)),
+            dtype=np.float32
+        )},
+        y=np.array(
+            np.reshape([1, ], (1, -1)),
+            dtype=np.int8
+        ),
+        num_epochs=1,
+        shuffle=False)
+
+    # eval_results = classifier.evaluate(input_fn=eval_input_fn)
+    predict = classifier.predict(input_fn=eval_input_fn)
+    # print(eval_results)
+    print(list(predict))
 
 
 if __name__ == "__main__":
