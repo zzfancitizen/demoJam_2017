@@ -1,14 +1,15 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import numpy as np
 import tensorflow as tf
 import pandas as pds
 import os
 
+# tf.logging.set_verbosity(tf.logging.INFO)
+
 PATH = os.path.abspath('./data')
-
-TRAIN_EPOCHS = 400
-
-
-# feature_columns = [tf.feature_column.numeric_column("x", shape=[-1, 11])]
 
 
 def my_input_fn():
@@ -24,110 +25,68 @@ def my_input_fn():
     for i in range(X.shape[1]):
         X[:, i] = (X[:, i] - min_value[i]) / (max_value[i] - min_value[i])
 
+    print(X.shape, Y.shape)
+
     return tf.estimator.inputs.numpy_input_fn(
-        x={"x": X},
-        y=Y,
+        x={"x": np.array(X)},
+        y=np.array(Y),
         batch_size=50,
         num_epochs=None,
         shuffle=True)
 
 
-def make_model(features, labels, mode, params, config):
-    # input_layer = tf.feature_column.input_layer(
-    #     features=features,
-    #     feature_columns=feature_columns
-    # )
+def mode_fn(features, labels, mode):
+    input_layer = tf.reshape(features["x"], [-1, 10])
 
-    input_layer = tf.reshape(features["x"], [-1, 11])
+    hid1 = tf.layers.dense(inputs=input_layer,
+                           units=10,
+                           activation=tf.nn.relu,
+                           name='hidden_layer_1'
+                           )
 
-    global_step = tf.contrib.framework.get_or_create_global_step()
+    drop1 = tf.layers.dropout(inputs=hid1, rate=0.4, name='dropout_1')
 
-    x = tf.layers.dense(
-        inputs=input_layer,
-        units=30,
-        activation=tf.nn.relu,
-        name="first_hidden_layer"
-    )
+    hid2 = tf.layers.dense(inputs=drop1,
+                           units=20,
+                           activation=tf.nn.relu,
+                           name='hidden_layer_2'
+                           )
 
-    x = tf.layers.dropout(
-        inputs=x,
-        name="first_dropout"
-    )
+    hid3 = tf.layers.dense(inputs=hid2,
+                           units=10,
+                           activation=tf.nn.relu,
+                           name='hidden_layer_3')
 
-    x = tf.layers.dense(
-        inputs=x,
-        units=20,
-        activation=tf.nn.relu,
-        name="second_hidden_layer"
-    )
+    prediction = tf.contrib.layers.fully_connected(inputs=hid3,
+                                                   num_outputs=1)
 
-    x = tf.layers.dropout(
-        inputs=x,
-        name="second_dropout"
-    )
-
-    x = tf.layers.dense(
-        inputs=x,
-        units=10,
-        activation=tf.nn.relu,
-        name="third_hidden_layer"
-    )
-
-    predictions = tf.contrib.layers.fully_connected(
-        inputs=x,
-        num_outputs=1
-    )
-
-    loss = tf.losses.absolute_difference(
-        labels=labels,
-        predictions=predictions
-    )
-
-    tf.summary.scalar("Loss", loss)
+    loss = tf.losses.absolute_difference(labels=labels,
+                                         predictions=prediction)
 
     optimizer = tf.train.AdamOptimizer(
-        learning_rate=params.learning_rate,
+        learning_rate=.1
     )
 
-    train_op = optimizer.minimize(loss, global_step=global_step)
+    train_op = optimizer.minimize(loss=loss,
+                                  global_step=tf.train.get_global_step())
 
-    return tf.estimator.EstimatorSpec(
-        mode=mode,
-        predictions=predictions,
-        loss=loss,
-        train_op=train_op
-    )
+    return tf.estimator.EstimatorSpec(mode=mode,
+                                      loss=loss,
+                                      train_op=train_op)
 
 
 def main(_):
     input_fn = my_input_fn()
 
-    hparams = tf.contrib.training.HParams(
-        learning_rate=.01,
+    classifier = tf.estimator.Estimator(
+        model_fn=mode_fn, model_dir='./model/temp-model-1'
     )
 
-    config = tf.ConfigProto()
-
-    trainingConfig = tf.contrib.learn.RunConfig(
-        # log_device_placement=True,
-        save_summary_steps=500,
-        save_checkpoints_steps=500,
-        # Creates model dir (need to change this)
-        model_dir=(os.path.abspath('./model') + os.path.sep + "temp-model"),
-        session_config=config
-    )
-
-    estimator = tf.estimator.Estimator(
-        model_fn=make_model,
-        params=hparams,
-        config=trainingConfig
-    )
-
-    estimator.train(
+    classifier.train(
         input_fn=input_fn,
-        steps=TRAIN_EPOCHS,
+        steps=2000
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     tf.app.run(main)
