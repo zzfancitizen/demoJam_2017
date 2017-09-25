@@ -1,23 +1,129 @@
 import numpy as np
+import tensorflow as tf
 import pandas as pds
 import os
 
-path = os.path.abspath('./data')
+PATH = os.path.abspath('./data')
 
-anal = pds.read_csv(filepath_or_buffer=path + os.path.sep + 'temp_anal.csv', sep='\t').as_matrix()
+TRAIN_EPOCHS = 400
+feature_columns = [tf.feature_column.numeric_column("x", shape=[11])]
 
-choose = np.random.choice(len(anal), int(len(anal) * 0.005))
 
-lbls = []
+def my_input_fn():
+    data_set = pds.read_csv(filepath_or_buffer=PATH + os.path.sep + 'temp_with_label.csv', sep='\t').as_matrix()
 
-for i in range(len(anal)):
-    if i in choose:
-        lbls.append(0)
-    else:
-        lbls.append(1)
+    X = data_set[:, 1:-2]
+    Y = data_set[:, -1]
 
-lbls = np.reshape(lbls, (len(lbls), 1))
+    max_value = X.max(axis=0)
+    min_value = X.min(axis=0)
 
-anal = np.concatenate((anal, lbls), axis=1)
+    # Feature scaling set input between [0, 1]
+    for i in range(X.shape[1]):
+        X[:, i] = (X[:, i] - min_value[i]) / (max_value[i] - min_value[i])
 
-np.savetxt(path + os.path.sep + 'temp_with_label.csv', X=anal, fmt='%s', delimiter='\t')
+    return tf.estimator.inputs.numpy_input_fn(
+        x={"x": np.array(X)},
+        y=np.array(Y),
+        batch_size=50,
+        num_epochs=None,
+        shuffle=True)
+
+
+def make_model(features, labels, mode, params, config):
+    input_layer = tf.feature_column.input_layer(
+        features=features,
+        feature_columns=feature_columns
+    )
+
+    global_step = tf.contrib.framework.get_or_create_global_step()
+
+    x = tf.layers.dense(
+        inputs=input_layer,
+        units=30,
+        activation=tf.nn.relu,
+        name="first_hidden_layer"
+    )
+
+    x = tf.layers.dropout(
+        inputs=x,
+        name="first_dropout"
+    )
+
+    x = tf.layers.dense(
+        inputs=x,
+        units=20,
+        activation=tf.nn.relu,
+        name="second_hidden_layer"
+    )
+
+    x = tf.layers.dropout(
+        inputs=x,
+        name="second_dropout"
+    )
+
+    x = tf.layers.dense(
+        inputs=x,
+        units=10,
+        activation=tf.nn.relu,
+        name="third_hidden_layer"
+    )
+
+    predictions = tf.contrib.layers.fully_connected(
+        inputs=x,
+        num_outputs=1
+    )
+
+    loss = tf.losses.absolute_difference(
+        labels=labels,
+        predictions=predictions
+    )
+
+    tf.summary.scalar("Loss", loss)
+
+    optimizer = tf.train.AdamOptimizer(
+        learning_rate=params.learning_rate,
+    )
+
+    train_op = optimizer.minimize(loss, global_step=global_step)
+
+    return tf.estimator.EstimatorSpec(
+        mode=mode,
+        predictions=predictions,
+        loss=loss,
+        train_op=train_op
+    )
+
+
+def main(_):
+    input_fn = my_input_fn()
+
+    hparams = tf.contrib.training.HParams(
+        learning_rate=.01,
+    )
+
+    config = tf.ConfigProto()
+
+    trainingConfig = tf.contrib.learn.RunConfig(
+        # log_device_placement=True,
+        save_summary_steps=500,
+        save_checkpoints_steps=500,
+        # Creates model dir (need to change this)
+        model_dir=(os.path.abspath('./model') + os.path.sep + "bucketized-04"),
+        session_config=config
+    )
+
+    estimator = tf.estimator.Estimator(
+        model_fn=make_model,
+        params=hparams,
+        config=trainingConfig
+    )
+
+    estimator.train(
+        input_fn=input_fn,
+        steps=TRAIN_EPOCHS,
+    )
+
+
+if __name__ == '__main__':
+    tf.app.run(main)
