@@ -6,7 +6,9 @@ import os
 PATH = os.path.abspath('./data')
 
 TRAIN_EPOCHS = 400
-feature_columns = [tf.feature_column.numeric_column("x", shape=[11])]
+
+
+# feature_columns = [tf.feature_column.numeric_column("x", shape=[-1, 11])]
 
 
 def my_input_fn():
@@ -23,18 +25,20 @@ def my_input_fn():
         X[:, i] = (X[:, i] - min_value[i]) / (max_value[i] - min_value[i])
 
     return tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(X)},
-        y=np.array(Y),
+        x={"x": X},
+        y=Y,
         batch_size=50,
         num_epochs=None,
         shuffle=True)
 
 
 def make_model(features, labels, mode, params, config):
-    input_layer = tf.feature_column.input_layer(
-        features=features,
-        feature_columns=feature_columns
-    )
+    # input_layer = tf.feature_column.input_layer(
+    #     features=features,
+    #     feature_columns=feature_columns
+    # )
+
+    input_layer = tf.reshape(features["x"], [-1, 11])
 
     global_step = tf.contrib.framework.get_or_create_global_step()
 
