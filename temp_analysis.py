@@ -15,8 +15,10 @@ PATH = os.path.abspath('./data')
 def my_input_fn():
     data_set = pds.read_csv(filepath_or_buffer=PATH + os.path.sep + 'temp_with_label.csv', sep='\t').as_matrix()
 
-    X = data_set[:, 1:-2]
+    X = data_set[:, 1:-1]
     Y = data_set[:, -1]
+
+    # print(X[0], Y[0])
 
     max_value = X.max(axis=0)
     min_value = X.min(axis=0)
@@ -25,18 +27,16 @@ def my_input_fn():
     for i in range(X.shape[1]):
         X[:, i] = (X[:, i] - min_value[i]) / (max_value[i] - min_value[i])
 
-    print(X.shape, Y.shape)
-
     return tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(X)},
-        y=np.array(Y),
+        x={"x": np.array(X, dtype=np.float32)},
+        y=np.array(np.reshape(Y, (-1, 1)), dtype=np.int8),
         batch_size=50,
         num_epochs=None,
         shuffle=True)
 
 
 def mode_fn(features, labels, mode):
-    input_layer = tf.reshape(features["x"], [-1, 10])
+    input_layer = tf.reshape(features["x"], [-1, 11])
 
     hid1 = tf.layers.dense(inputs=input_layer,
                            units=10,
@@ -86,6 +86,23 @@ def main(_):
         input_fn=input_fn,
         steps=2000
     )
+
+    # eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+    #     x={"x": np.array(
+    #         np.reshape([25.0, 77.0, 24.0, 75.2, 94.0, 11.1, 6.9, 16.1, 10.0, 1013.4, 29.93], (1, -1)),
+    #         dtype=np.float32
+    #     )},
+    #     y=np.array(
+    #         np.reshape([1, ], (1, -1)),
+    #         dtype=np.int8
+    #     ),
+    #     num_epochs=1,
+    #     shuffle=False)
+    #
+    # # eval_results = classifier.evaluate(input_fn=eval_input_fn)
+    # predict = classifier.predict(input_fn=eval_input_fn)
+    # # print(eval_results)
+    # print(list(predict))
 
 
 if __name__ == "__main__":

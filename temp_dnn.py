@@ -14,7 +14,7 @@ PATH = os.path.abspath('./data')
 def main():
     data_set = pds.read_csv(filepath_or_buffer=PATH + os.path.sep + 'temp_with_label.csv', sep='\t').as_matrix()
 
-    X = data_set[:, 1:-2]
+    X = data_set[:, 1:-1]
     Y = data_set[:, -1]
 
     max_value = X.max(axis=0)
@@ -25,7 +25,7 @@ def main():
         X[:, i] = (X[:, i] - min_value[i]) / (max_value[i] - min_value[i])
 
     # Specify that all features have real-value data
-    feature_columns = [tf.feature_column.numeric_column("x", shape=[10])]
+    feature_columns = [tf.feature_column.numeric_column("x", shape=[11])]
 
     # Build 3 layer DNN with 10, 20, 10 units respectively.
     classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,
