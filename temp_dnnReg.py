@@ -37,7 +37,7 @@ def main(_):
         feature_columns=feature_columns,
         hidden_units=[20, 10],
         optimizer=tf.train.AdamOptimizer(
-            learning_rate=.5,
+            learning_rate=1,
         ),
         model_dir='./model/temp-model-2'
     )
