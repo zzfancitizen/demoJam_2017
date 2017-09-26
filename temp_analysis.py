@@ -74,7 +74,7 @@ def mode_fn(features, labels, mode):
 
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer(
-            learning_rate=.1
+            learning_rate=.5
         )
 
         train_op = optimizer.minimize(loss=loss,
