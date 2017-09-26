@@ -2,10 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
-import tensorflow as tf
-import pandas as pds
 import os
+
+import numpy as np
+import pandas as pds
+import tensorflow as tf
 
 tf.logging.set_verbosity(tf.logging.ERROR)
 
@@ -29,7 +30,7 @@ def my_input_fn():
 
     return tf.estimator.inputs.numpy_input_fn(
         x={"x": np.array(X, dtype=np.float32)},
-        y=np.array(np.reshape(Y, (-1, 1)), dtype=np.int8),
+        y=np.array(np.reshape(Y, (-1, 1)), dtype=np.float32),
         batch_size=50,
         num_epochs=None,
         shuffle=True)
@@ -57,22 +58,41 @@ def mode_fn(features, labels, mode):
                            activation=tf.nn.relu,
                            name='hidden_layer_3')
 
-    prediction = tf.contrib.layers.fully_connected(inputs=hid3,
-                                                   num_outputs=1)
+    logits = tf.layers.dense(inputs=hid3,
+                             units=1)
 
-    loss = tf.losses.absolute_difference(labels=labels,
-                                         predictions=prediction)
+    predictions = {
+        "classes": tf.argmax(input=logits, axis=1),
+        "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+    }
 
-    optimizer = tf.train.AdamOptimizer(
-        learning_rate=.1
-    )
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
 
-    train_op = optimizer.minimize(loss=loss,
-                                  global_step=tf.train.get_global_step())
+    loss = tf.losses.softmax_cross_entropy(onehot_labels=labels,
+                                           logits=logits)
 
-    return tf.estimator.EstimatorSpec(mode=mode,
-                                      loss=loss,
-                                      train_op=train_op)
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        optimizer = tf.train.AdamOptimizer(
+            learning_rate=.1
+        )
+
+        train_op = optimizer.minimize(loss=loss,
+                                      global_step=tf.train.get_global_step())
+
+        return tf.estimator.EstimatorSpec(
+            mode=mode,
+            loss=loss,
+            train_op=train_op
+        )
+
+    eval_metric_ops = {
+        "accuracy": tf.metrics.accuracy(
+            labels=labels, predictions=predictions["classes"])
+    }
+
+    return tf.estimator.EstimatorSpec(
+        mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
 
 
 def main(_):
@@ -82,34 +102,31 @@ def main(_):
         model_fn=mode_fn, model_dir='./model/temp-model-1'
     )
 
-    # classifier.train(
-    #     input_fn=input_fn,
-    #     steps=2000
-    # )
+    classifier.train(
+        input_fn=input_fn,
+        steps=2000
+    )
 
-    _X = np.reshape([23.3, 73.9, 21.7, 71.1, 91.0, 42.6, 26.5, 3.2, 2.0, 1005.0, 29.68], (1, -1))
-    _Y = np.reshape([0, ], (1, -1))
-
-    eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": np.array(
-            # np.reshape([25.0, 77.0, 24.0, 75.2, 94.0, 11.1, 6.9, 16.1, 10.0, 1013.4, 29.93], (1, -1)),
-            # np.reshape([23.3, 73.9, 21.7, 71.1, 91.0, 42.6, 26.5, 3.2, 2.0, 1005.0, 29.68], (1, -1)),
-            _X,
-            dtype=np.float32
-        )},
-        y=np.array(
-            # np.reshape([0, ], (1, -1)),
-            _Y,
-            dtype=np.int8
-        ),
-        num_epochs=1,
-        shuffle=False)
-
-    eval_results = classifier.evaluate(input_fn=eval_input_fn)
-    predict = classifier.predict(input_fn=eval_input_fn)
-    print(eval_results)
-    print(predict)
-    print(list(predict))
+    # _X = np.reshape([23.3, 73.9, 21.7, 71.1, 91.0, 42.6, 26.5, 3.2, 2.0, 1005.0, 29.68], (1, -1))
+    # _Y = np.reshape([0, ], (1, -1))
+    #
+    # eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+    #     x={"x": np.array(
+    #         _X,
+    #         dtype=np.float32
+    #     )},
+    #     y=np.array(
+    #         _Y,
+    #         dtype=np.int8
+    #     ),
+    #     num_epochs=1,
+    #     shuffle=False)
+    #
+    # eval_results = classifier.evaluate(input_fn=eval_input_fn)
+    # # predict = classifier.predict(input_fn=eval_input_fn)
+    # print(eval_results)
+    # # print(predict)
+    # # print(list(predict))
 
 
 if __name__ == "__main__":
