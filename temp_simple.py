@@ -89,6 +89,20 @@ def main(_):
                 ys: np.reshape(y_, (-1, 1))
             })
 
+        p1 = sess.run(logits, feed_dict={
+            xs: np.reshape([[26]], (-1, 1))
+        })
+
+        p2 = sess.run(logits, feed_dict={
+            xs: np.reshape([[60]], (-1, 1))
+        })
+
+        p3 = sess.run(logits, feed_dict={
+            xs: np.reshape([[3]], (-1, 1))
+        })
+
+        print(p1, p2, p3)
+
         save_path = saver.save(sess, SAVE_PATH + os.path.sep + 'model.ckpt')
         print("Save at %s" % save_path)
 
