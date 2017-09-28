@@ -80,28 +80,12 @@ def main(_):
         sess.run(init)
 
         for i in range(2000):
+            # x_, y_ = next_batch(50, X, Y)
+
             sess.run(train_op, feed_dict={
                 xs: np.reshape(X, (-1, 1)),
                 ys: np.reshape(Y, (-1, 1))
             })
-
-        p1 = sess.run(logits, feed_dict={
-            xs: np.reshape([[25.]], (-1, 1))
-        })
-
-        p2 = sess.run(logits, feed_dict={
-            xs: np.reshape([[36.]], (-1, 1))
-        })
-
-        p3 = sess.run(logits, feed_dict={
-            xs: np.reshape([[9.]], (-1, 1))
-        })
-
-        p4 = sess.run(logits, feed_dict={
-            xs: np.reshape([[60.]], (-1, 1))
-        })
-
-        print(p1, p2, p3, p4)
 
         save_path = saver.save(sess, SAVE_PATH + os.path.sep + 'model.ckpt')
         print("Save at %s" % save_path)
