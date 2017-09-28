@@ -30,7 +30,7 @@ class model_read(object):
                 xs: np.reshape(self._temp, (-1, 1))
             })
 
-            return predict
+        return predict
 
 
 if __name__ == '__main__':
