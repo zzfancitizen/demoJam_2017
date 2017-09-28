@@ -36,7 +36,7 @@ def main(_):
     x_median = np.repeat(np.median(X, axis=0), 5000, axis=0)
     x_max = np.max(X, axis=0)
     x_min = np.min(X, axis=0)
-    X = np.linspace(x_min, x_max, num=5000)
+    X = np.linspace(0, x_max, num=5000)
     bias = np.random.normal(0, 0.05, 5000)
     Y = np.power(abs(X - x_median), 1 / 2) * 10 / 100 + bias
 
