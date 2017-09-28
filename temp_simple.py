@@ -7,7 +7,6 @@ import pandas as pds
 import numpy as np
 import os
 import random
-import math
 
 PATH = os.path.abspath('./data')
 SAVE_PATH = os.path.abspath('./model/temp_simple_model')
