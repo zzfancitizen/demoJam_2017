@@ -55,7 +55,7 @@ class predict_server(BaseHTTPRequestHandler):
 
 
 def main():
-    PORT = 50030
+    PORT = 60030
     print('Listening on localhost:%s' % PORT)
     server = HTTPServer(('', PORT), predict_server)
     server.serve_forever()
