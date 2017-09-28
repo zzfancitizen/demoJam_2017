@@ -14,7 +14,7 @@ if __name__ == '__main__':
         logits = graph.get_tensor_by_name("output_layer/predict:0")
 
         predict = sess.run(logits, feed_dict={
-            xs: np.reshape([[26]], (-1, 1))
+            xs: np.reshape([[5.]], (-1, 1))
         })
 
         print(predict)

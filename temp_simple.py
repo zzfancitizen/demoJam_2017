@@ -25,11 +25,6 @@ def next_batch(batch_size, x, y):
     return new_x, new_y
 
 
-def tanh(x):
-    y = abs((math.e ** x - math.e ** -x) / (math.e ** -x + math.e ** x))
-    return y
-
-
 def main(_):
     data_set = pds.read_csv(
         filepath_or_buffer=PATH + os.path.sep + 'temp_with_label2.csv',
@@ -37,10 +32,13 @@ def main(_):
         header=None
     ).as_matrix()
 
-    X = data_set[:2000, 1]
-    x_median = np.repeat(np.median(X, axis=0), X.shape, axis=0)
-    bias = abs(np.random.normal(0, 0.05, X.shape))
-    Y = tanh(X - x_median) + bias
+    X = data_set[:5000, 1]
+    x_median = np.repeat(np.median(X, axis=0), 5000, axis=0)
+    x_max = np.max(X, axis=0)
+    x_min = np.min(X, axis=0)
+    X = np.linspace(x_min, x_max, num=5000)
+    bias = np.random.normal(0, 0.05, 5000)
+    Y = np.power(abs(X - x_median), 1 / 2) * 10 / 100 + bias
 
     with tf.name_scope("input_layer"):
         xs = tf.placeholder(tf.float32, [None, 1], name='x_input')
@@ -81,27 +79,29 @@ def main(_):
     with tf.Session() as sess:
         sess.run(init)
 
-        for i in range(20000):
-            x_, y_ = next_batch(50, X, Y)
-
+        for i in range(2000):
             sess.run(train_op, feed_dict={
-                xs: np.reshape(x_, (-1, 1)),
-                ys: np.reshape(y_, (-1, 1))
+                xs: np.reshape(X, (-1, 1)),
+                ys: np.reshape(Y, (-1, 1))
             })
 
         p1 = sess.run(logits, feed_dict={
-            xs: np.reshape([[26]], (-1, 1))
+            xs: np.reshape([[25.]], (-1, 1))
         })
 
         p2 = sess.run(logits, feed_dict={
-            xs: np.reshape([[60]], (-1, 1))
+            xs: np.reshape([[36.]], (-1, 1))
         })
 
         p3 = sess.run(logits, feed_dict={
-            xs: np.reshape([[3]], (-1, 1))
+            xs: np.reshape([[9.]], (-1, 1))
         })
 
-        print(p1, p2, p3)
+        p4 = sess.run(logits, feed_dict={
+            xs: np.reshape([[60.]], (-1, 1))
+        })
+
+        print(p1, p2, p3, p4)
 
         save_path = saver.save(sess, SAVE_PATH + os.path.sep + 'model.ckpt')
         print("Save at %s" % save_path)
