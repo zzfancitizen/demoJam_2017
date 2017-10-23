@@ -67,27 +67,35 @@ def main(_):
 
         logits = tf.add(tf.matmul(h3_out, W_out), b_out, name='predict')
 
+        tf.summary.histogram('logits', logits)
+
     loss = tf.reduce_mean(tf.reduce_sum(tf.square(ys - logits), name="reduce_sum"), name="reduce_mean")
+    tf.summary.scalar('loss', loss)
 
     train_op = tf.train.AdamOptimizer(.01).minimize(loss)
 
     init = tf.global_variables_initializer()
 
-    saver = tf.train.Saver()
+    # saver = tf.train.Saver()
 
     with tf.Session() as sess:
         sess.run(init)
 
+        writer = tf.summary.FileWriter('./log-directory', sess.graph)
+        merge_op = tf.summary.merge_all()
+
         for i in range(2000):
             # x_, y_ = next_batch(50, X, Y)
 
-            sess.run(train_op, feed_dict={
+            _, result = sess.run([train_op, merge_op], feed_dict={
                 xs: np.reshape(X, (-1, 1)),
                 ys: np.reshape(Y, (-1, 1))
             })
 
-        save_path = saver.save(sess, SAVE_PATH + os.path.sep + 'model.ckpt')
-        print("Save at %s" % save_path)
+            writer.add_summary(result, i)
+
+            # save_path = saver.save(sess, SAVE_PATH + os.path.sep + 'model.ckpt')
+            # print("Save at %s" % save_path)
 
 
 if __name__ == '__main__':
